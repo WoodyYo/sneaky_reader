@@ -6,20 +6,25 @@ if(!chrome.cookies) {
 
 var last_read = 0;
 var table = {};
+var tab_table = {};
+var sync = false;
 
 chrome.runtime.onMessage.addListener(function(req, sender, resp) {
 	var ctl = req.ctl;
-	if(ctl == 0) resp({name: last_read});
-	else if(ctl == 1) resp({isin: is_in_cookie(req.name), pos: last_read_pos(req.name)});
-	else if(ctl == 2) {
+	if(ctl == 0) {
+		var cur_name = get_name_from_tabs(sender.tab.id);
 		resp({
-			inner: read_from_sandbox(req.name), //from file
-			pos: last_read_pos(req.name) //from cookie
+			name: cur_name,
+			inner: read_from_sandbox(cur_name),
+			pos: last_read_pos(cur_name),
+			sync: sync
 		});
 	}
-	else if(ctl == 3) save_read_pos(req.name, req.pos);
+	else if(ctl == 1) resp({isin: is_in_cookie(req.name), pos: last_read_pos(req.name)});
+	else if(ctl == 3) save_read_pos(req.name, req.pos, sender.tab.id);
 	else if(ctl == 4) set_last_read(req.name);
-	else write_to_sandbox(req.name, req.s)
+	else if(ctl == 5) write_to_sandbox(req.name, req.s);
+	else sync_box_controller(req.sync);
 });
 
 chrome.cookies.getAll({"url": my_url}, function(cookies) {
@@ -29,6 +34,9 @@ chrome.cookies.getAll({"url": my_url}, function(cookies) {
 		else table[c.name] = c.value;
 	}
 });
+function get_name_from_tabs(tabid) {
+	//TODO
+}
 
 function set_last_read(name) {
 	var c = {
@@ -46,7 +54,8 @@ function last_read_pos(name) {
 	return table[name];
 }
 
-function save_read_pos(name, pos) {
+function save_read_pos(name, pos, tabid) {
+	alert("TODO!!!"+tabid);
 	var c = {
 		url: my_url,
 		name: name,
@@ -54,13 +63,13 @@ function save_read_pos(name, pos) {
 		expirationDate: new Date().getTime()*2
 	};
 	chrome.cookies.set(c, null);
-	
-	chrome.tabs.query({}, function(tabs){
-		for(var i = 0; i < tabs.length; i++) {
-			chrome.tabs.sendMessage(tabs[i].id, {"name": name, "pos": pos}, null); 
-		}
-	});
-
+	if(sync) {
+		chrome.tabs.query({}, function(tabs){
+			for(var i = 0; i < tabs.length; i++) {
+				chrome.tabs.sendMessage(tabs[i].id, {"ctl": 0, "name": name, "pos": pos}, null); 
+			}
+		});
+	}
 	table[name] = pos;
 }
 
@@ -68,6 +77,16 @@ function is_in_cookie(name) {
 	if(table[name] == undefined) return false;
 	else return true;
 }
+/****/
+function sync_box_controller(if_sync) {
+	sync = if_sync;
+	chrome.tabs.query({}, function(tabs){
+		for(var i = 0; i < tabs.length; i++) {
+			chrome.tabs.sendMessage(tabs[i].id, {"ctl": 1, "sync": sync}, null); 
+		}
+	});
+}
+
 /****/
 var fs = null;
 var rootdir;

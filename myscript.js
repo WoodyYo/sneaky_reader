@@ -1,13 +1,16 @@
-document.body.innerHTML += "<div id='novel_block'><div id='true_content'></div><button id='go_button'>GO</button><input id='novel_url' type='file'></input></div>";
+document.body.innerHTML += "<div id='novel_block'><div id='true_content'></div><input type='checkbox' id='sync_box'>Sync<button id='go_button'>GO</button><input id='novel_url' type='file'></input></div>";
 
 var __div = document.getElementById("novel_block");
 var __content = document.getElementById("true_content");
 var __name;
+var __check = document.getElementById("sync_box");
 var old_scrollTop;
 
-chrome.runtime.sendMessage({"ctl": 0}, function(resp) {
-	__name = resp.name; //search from cookie
-	if(__name != "0") set_content(__name);
+chrome.runtime.sendMessage({"ctl": 0, "tabid": 123}, function(resp) {
+	__name = resp.name;
+	__content.innerHTML = resp.inner;
+	__content.scrollTop = resp.pos;
+	__check.checked = resp.sync;
 });
 
 /****/
@@ -19,6 +22,9 @@ __div.onmouseout = function() {
 	this.style.marginRight = "-245px";
 	__content.style.visibility = "hidden";
 };
+__check.onchange = function() {
+	chrome.runtime.sendMessage({"ctl": 6, "sync": this.checked}, null);
+}
 /****/
 var __file = document.getElementById("novel_url");
 __file.onchange = function() {
@@ -48,8 +54,7 @@ document.getElementById("go_button").onclick = function() {
 /****/
 function set_content(name) {
 	chrome.runtime.sendMessage({"ctl": 2, "name": __name}, function(resp) {
-		__content.innerHTML = resp.inner;
-		__content.scrollTop = resp.pos;
+		
 	});
 }
 /****/
@@ -65,8 +70,14 @@ function save2cookie_timer() {
 save2cookie_timer();
 
 chrome.runtime.onMessage.addListener(function(req, sender, resp) {
-	if(req.name == __name && !__sent) __content.scrollTop = req.pos;
-	__sent = false;
+	var ctl = req.ctl;
+	if(ctl == 0) {
+		if(req.name == __name && !__sent) __content.scrollTop = req.pos;
+		__sent = false;
+	}
+	else if(ctl == 1) {
+		__check.checked = req.sync;
+	}
 });
 /****/
 function do_escape(s) {

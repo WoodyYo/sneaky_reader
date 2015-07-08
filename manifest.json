@@ -8,6 +8,7 @@
   "browser_action": {},
 
   "permissions": [
+    "tabs",
     "storage",
     "cookies",
     "*://takaogirl5566.com/"
