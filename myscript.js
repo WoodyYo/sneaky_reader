@@ -6,11 +6,10 @@ var __name;
 var __check = document.getElementById("sync_box");
 var old_scrollTop;
 
-chrome.runtime.sendMessage({"ctl": 0, "tabid": 123}, function(resp) {
+chrome.runtime.sendMessage({"ctl": 0}, function(resp) {
 	__name = resp.name;
-	__content.innerHTML = resp.inner;
-	__content.scrollTop = resp.pos;
 	__check.checked = resp.sync;
+	if(__name != "0") set_content(__name);
 });
 
 /****/
@@ -54,16 +53,15 @@ document.getElementById("go_button").onclick = function() {
 /****/
 function set_content(name) {
 	chrome.runtime.sendMessage({"ctl": 2, "name": __name}, function(resp) {
-		
+		__content.innerHTML = resp.inner;
+		__content.scrollTop = resp.pos;
 	});
 }
 /****/
-var __sent = false;
 function save2cookie_timer() {
 	if(old_scrollTop != __content.scrollTop) {
 		old_scrollTop = __content.scrollTop;
 		chrome.runtime.sendMessage({"ctl": 3, "pos": __content.scrollTop, "name": __name}, null);
-		__sent = true;
 	}
 	setTimeout(save2cookie_timer, 1000);
 }
@@ -72,8 +70,7 @@ save2cookie_timer();
 chrome.runtime.onMessage.addListener(function(req, sender, resp) {
 	var ctl = req.ctl;
 	if(ctl == 0) {
-		if(req.name == __name && !__sent) __content.scrollTop = req.pos;
-		__sent = false;
+		__content.scrollTop = req.pos;
 	}
 	else if(ctl == 1) {
 		__check.checked = req.sync;

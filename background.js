@@ -11,16 +11,14 @@ var sync = false;
 
 chrome.runtime.onMessage.addListener(function(req, sender, resp) {
 	var ctl = req.ctl;
-	if(ctl == 0) {
-		var cur_name = get_name_from_tabs(sender.tab.id);
+	if(ctl == 0) resp({name: last_read, sync: sync});
+	else if(ctl == 1) resp({isin: is_in_cookie(req.name), pos: last_read_pos(req.name)});
+	else if(ctl == 2) {
 		resp({
-			name: cur_name,
-			inner: read_from_sandbox(cur_name),
-			pos: last_read_pos(cur_name),
-			sync: sync
+			inner:  read_from_sandbox(req.name),
+			pos: last_read_pos(req.name) 
 		});
 	}
-	else if(ctl == 1) resp({isin: is_in_cookie(req.name), pos: last_read_pos(req.name)});
 	else if(ctl == 3) save_read_pos(req.name, req.pos, sender.tab.id);
 	else if(ctl == 4) set_last_read(req.name);
 	else if(ctl == 5) write_to_sandbox(req.name, req.s);
@@ -34,9 +32,6 @@ chrome.cookies.getAll({"url": my_url}, function(cookies) {
 		else table[c.name] = c.value;
 	}
 });
-function get_name_from_tabs(tabid) {
-	//TODO
-}
 
 function set_last_read(name) {
 	var c = {
@@ -55,7 +50,6 @@ function last_read_pos(name) {
 }
 
 function save_read_pos(name, pos, tabid) {
-	alert("TODO!!!"+tabid);
 	var c = {
 		url: my_url,
 		name: name,
