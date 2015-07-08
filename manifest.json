@@ -1,0 +1,25 @@
+{
+  "manifest_version": 2,
+
+  "name": "Sneaky Reader",
+  "description": "Don't let your boss know!!",
+  "version": "1.0",
+
+  "browser_action": {},
+
+  "permissions": [
+    "cookies",
+    "*://*.google.com/"
+  ],
+
+  "content_scripts": [{
+	"matches": ["<all_urls>"],
+	"exclude_matches": ["https://www.facebook.com/*"],
+	"css": ["mystyle.css"],
+	"js": ["myscript.js"]
+  }],
+  
+  "background": {
+  	"scripts": ["api_call.js"]
+  }
+}
