@@ -29,6 +29,7 @@
 
 #true_content {
 	overflow-y: auto;
+	visibility: hidden;
 	word-wrap: break-word;
 	line-height: 20px;
 	height: 90%;

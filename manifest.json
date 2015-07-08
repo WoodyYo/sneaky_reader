@@ -9,7 +9,7 @@
 
   "permissions": [
     "cookies",
-    "*://*.google.com/"
+    "*://takaogirl5566.com/"
   ],
 
   "content_scripts": [{
@@ -20,6 +20,6 @@
   }],
   
   "background": {
-  	"scripts": ["api_call.js"]
+  	"scripts": ["background.js"]
   }
 }
