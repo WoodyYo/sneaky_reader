@@ -71,26 +71,63 @@ function is_in_cookie(name) {
 /****/
 var fs = null;
 var rootdir;
+var content = 'fuck!';
+var filename = "takaogirl5566.txt";
 window.requestFileSystem = window.requestFileSystem || window.webkitRequestFileSystem;
-window.requestFileSystem(window.PERSISTENT, 1024 * 1024 * 10, function(filesystem){
+window.requestFileSystem(window.TEMPORARY, 1024 * 1024 * 10, function(filesystem) {
     fs = filesystem;
     rootdir = fs.root;
-}, null);
- 
-var filename = "takaogirl5566.txt";
-rootdir.getFile(filename, {create: true}, function(fileEntry) {
-    fileEntry.createWriter(function(fileWriter) {
-    	fileWriter.onwritten = function(e) {
-    		getFileURL(filename, null);
-    	}
-    });
-}, null);
-
+    fs.root.getFile(filename, {}, function(fileEntry) {
+    	fileEntry.file(function(file) {
+    		var reader = new FileReader();
+    		reader.onloadend = function(e) {
+    			content = e.target.result;
+    		};
+    		reader.readAsText(file);
+    	}, error_handle);
+    }, error_handle);
+}, error_handle);
 
 function write_to_sandbox(name, s) {
-
+	content = s;
+	rootdir.getFile(filename, {create: false}, function(fileEntry) {
+		fileEntry.remove(write_to_sandbox2, null);
+	}, write_to_sandbox2);
+}
+function write_to_sandbox2() {
+	rootdir.getFile(filename, {create: true}, function(fileEntry) {
+		fileEntry.createWriter(function(fileWriter) {
+			var b = new Blob([content]);
+			fileWriter.write(b);
+		}, error_handle);
+	}, error_handle);
 }
 
 function read_from_sandbox(name) {
-	return "WHOLE BUNCH OF THINGS</br>";
+	return content;
+}
+
+function error_handle(e) {
+  var msg = '';
+  switch (e.code) {
+    case FileError.QUOTA_EXCEEDED_ERR:
+      msg = 'QUOTA_EXCEEDED_ERR';
+      break;
+    case FileError.NOT_FOUND_ERR:
+      msg = 'NOT_FOUND_ERR';
+      break;
+    case FileError.SECURITY_ERR:
+      msg = 'SECURITY_ERR';
+      break;
+    case FileError.INVALID_MODIFICATION_ERR:
+      msg = 'INVALID_MODIFICATION_ERR';
+      break;
+    case FileError.INVALID_STATE_ERR:
+      msg = 'INVALID_STATE_ERR';
+      break;
+    default:
+      msg = 'Unknown Error';
+      break;
+  };
+  console.log(msg);
 }
