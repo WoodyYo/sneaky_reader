@@ -24,17 +24,22 @@ var __file = document.getElementById("novel_url");
 __file.onchange = function() {
 	__name = __file.files[0].name;
 	chrome.runtime.sendMessage({"ctl": 1, "name": __name}, function(resp) {
-		if(resp.isin) set_content(__name);
-		else { //first read
-			chrome.runtime.sendMessage({"ctl": 4, "name": __name}, null);
+		(function(resp) {  //FUCK U closure!!
 			var reader = new FileReader();
 			reader.onload = function(evt) {
 				__content.innerHTML = do_escape(evt.target.result);
 				chrome.runtime.sendMessage({"ctl": 5, "name": __name, "s": __content.innerHTML}, null);
+
+				if(resp.isin) __content.scrollTop = resp.pos;
+				else { //first time, call set_read_pos to let bg remember it.
+					chrome.runtime.sendMessage({"ctl": 3, "pos": 0, "name": __name}, null);
+				}
+				old_scrollTop = __content.scrollTop;
 			};
 			reader.readAsText(__file.files[0]);
-		}
-		old_scrollTop = __content.scrollTop;
+		})(resp);
+
+		chrome.runtime.sendMessage({"ctl": 4, "name": __name}, null); //set last read	
 	});
 };
 document.getElementById("go_button").onclick = function() {
@@ -55,7 +60,7 @@ function save2cookie_timer() {
 		chrome.runtime.sendMessage({"ctl": 3, "pos": __content.scrollTop, "name": __name}, null);
 		__sent = true;
 	}
-	setTimeout(save2cookie_timer, 3000);
+	setTimeout(save2cookie_timer, 1000);
 }
 save2cookie_timer();
 

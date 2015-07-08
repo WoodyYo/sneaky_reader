@@ -1,5 +1,8 @@
 /****/
 var my_url = "https://takaogirl5566.com";
+if(!chrome.cookies) {
+	chrome.cookies = chrome.experimental.cookies;
+}
 
 var last_read = 0;
 var table = {};
@@ -7,17 +10,14 @@ var table = {};
 chrome.runtime.onMessage.addListener(function(req, sender, resp) {
 	var ctl = req.ctl;
 	if(ctl == 0) resp({name: last_read});
-	else if(ctl == 1) resp({isin: is_in_cookie(req.name)});
+	else if(ctl == 1) resp({isin: is_in_cookie(req.name), pos: last_read_pos(req.name)});
 	else if(ctl == 2) {
 		resp({
 			inner: read_from_sandbox(req.name), //from file
 			pos: last_read_pos(req.name) //from cookie
 		});
 	}
-	else if(ctl == 3) {
-		save_read_pos(req.name, req.pos);
-		sync_same_novel(req.name, req.pos);
-	}
+	else if(ctl == 3) save_read_pos(req.name, req.pos);
 	else if(ctl == 4) set_last_read(req.name);
 	else write_to_sandbox(req.name, req.s)
 });
@@ -37,10 +37,9 @@ function set_last_read(name) {
 		value: name,
 		expirationDate: new Date().getTime()*2 
 	};
-
-	save_read_pos(name, 0);	
-	last_read = name;
 	chrome.cookies.set(c, null);
+
+	last_read = name;
 }
 
 function last_read_pos(name) {
@@ -55,16 +54,14 @@ function save_read_pos(name, pos) {
 		expirationDate: new Date().getTime()*2
 	};
 	chrome.cookies.set(c, null);
-
-	table[name] = pos;
-}
-
-function sync_same_novel(name, pos) {
+	
 	chrome.tabs.query({}, function(tabs){
 		for(var i = 0; i < tabs.length; i++) {
 			chrome.tabs.sendMessage(tabs[i].id, {"name": name, "pos": pos}, null); 
 		}
 	});
+
+	table[name] = pos;
 }
 
 function is_in_cookie(name) {
@@ -72,12 +69,23 @@ function is_in_cookie(name) {
 	else return true;
 }
 /****/
-var fs;
+var fs = null;
+var rootdir;
 window.requestFileSystem = window.requestFileSystem || window.webkitRequestFileSystem;
-window.requestFileSystem(window.TEMPORARY, 1024 * 1024 * 10, function(filesystem){
+window.requestFileSystem(window.PERSISTENT, 1024 * 1024 * 10, function(filesystem){
     fs = filesystem;
-}, fsErrorHandler);
-var rootdir = fs.root;
+    rootdir = fs.root;
+}, null);
+ 
+var filename = "takaogirl5566.txt";
+rootdir.getFile(filename, {create: true}, function(fileEntry) {
+    fileEntry.createWriter(function(fileWriter) {
+    	fileWriter.onwritten = function(e) {
+    		getFileURL(filename, null);
+    	}
+    });
+}, null);
+
 
 function write_to_sandbox(name, s) {
 
