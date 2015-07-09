@@ -1,4 +1,4 @@
-document.body.innerHTML += "<div id='novel_block'><div id='true_content'></div><input type='checkbox' id='sync_box'>Sync<button id='go_button'>GO</button><input id='novel_url' type='file'></input></div>";
+document.body.innerHTML += "<div id='novel_block'><div id='true_content'>Please load a txt file</div><input type='checkbox' id='sync_box'>Sync<button id='go_button'>GO</button><input id='novel_url' type='file'></input></div>";
 
 var __div = document.getElementById("novel_block");
 var __content = document.getElementById("true_content");

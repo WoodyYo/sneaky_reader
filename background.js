@@ -84,7 +84,7 @@ function sync_box_controller(if_sync) {
 /****/
 var fs = null;
 var rootdir;
-var content = 'fuck!';
+var content = 'Please load a txt file';
 var filename = "takaogirl5566.txt";
 window.requestFileSystem = window.requestFileSystem || window.webkitRequestFileSystem;
 window.requestFileSystem(window.TEMPORARY, 1024 * 1024 * 10, function(filesystem) {
