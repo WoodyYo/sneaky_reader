@@ -70,7 +70,7 @@ save2cookie_timer();
 chrome.runtime.onMessage.addListener(function(req, sender, resp) {
 	var ctl = req.ctl;
 	if(ctl == 0) {
-		__content.scrollTop = req.pos;
+		if(req.name == __name)__content.scrollTop = req.pos;
 	}
 	else if(ctl == 1) {
 		__check.checked = req.sync;
