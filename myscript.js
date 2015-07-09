@@ -58,12 +58,10 @@ function set_content(name) {
 	});
 }
 /****/
-var __sent = false;
 function save2cookie_timer() {
 	if(old_scrollTop != __content.scrollTop) {
 		old_scrollTop = __content.scrollTop;
 		chrome.runtime.sendMessage({"ctl": 3, "pos": __content.scrollTop, "name": __name}, null);
-		__sent = true;
 	}
 	setTimeout(save2cookie_timer, 1000);
 }
@@ -72,8 +70,7 @@ save2cookie_timer();
 chrome.runtime.onMessage.addListener(function(req, sender, resp) {
 	var ctl = req.ctl;
 	if(ctl == 0) {
-		if(req.name == __name && !__sent) __content.scrollTop = req.pos;
-		__sent = false;
+		if(req.name == __name) __content.scrollTop = req.pos;
 	}
 	else if(ctl == 1) {
 		__check.checked = req.sync;
